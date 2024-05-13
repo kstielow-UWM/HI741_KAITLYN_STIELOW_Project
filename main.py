@@ -1,3 +1,4 @@
+# importing modules & classes
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 import csv
@@ -8,40 +9,44 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("Clinical Data Warehouse")
-        
+        # creating login frame
         self.login_frame = tk.Frame(self.root)
         self.login_frame.pack()
-
+        # Username label and entry
         self.username_label = tk.Label(self.login_frame, text="Username:")
         self.username_label.grid(row=0, column=0)
         self.username_entry = tk.Entry(self.login_frame)
         self.username_entry.grid(row=0, column=1)
-
+        # Password label and entry
         self.password_label = tk.Label(self.login_frame, text="Password:")
         self.password_label.grid(row=1, column=0)
         self.password_entry = tk.Entry(self.login_frame, show="*")
         self.password_entry.grid(row=1, column=1)
-
+        # Login button
         self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
         self.login_button.grid(row=2, columnspan=2)
-
+        # Patient Frame
         self.patients_frame = tk.Frame(self.root)
 
+    # login functionality
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
-
+        # Validate credentials
         if self.validate_credentials(username, password):
+            # If credentials are valid, show the main menu
             self.login_frame.pack_forget()
             self.show_main_menu()
-            
+            # Log Usage
             user_role = self.get_user_role(username)  
             self.log_usage(username, user_role, "Login", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))  
         else:
+            # If credentials are invalid, show error message
             messagebox.showerror("Error", "Invalid username or password")
-            
+            # Log failed login attempt
             self.log_usage(username, "", "Failed Login Attempt", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
+    # Validate user credentials
     def validate_credentials(self, username, password):
         try:
             with open("Project_credentials.csv", "r") as file:
@@ -54,6 +59,7 @@ class App:
             messagebox.showerror("Error", "Credential file not found")
         return False
 
+    # Get user role
     def get_user_role(self, username):
         try:
             with open("Project_credentials.csv", "r") as file:
@@ -65,7 +71,7 @@ class App:
             pass  
 
         return ""  
-
+    # Show Main Menu
     def show_main_menu(self):
         self.patients_frame.pack()
 
@@ -87,6 +93,7 @@ class App:
         exit_button = tk.Button(self.patients_frame, text="Exit", command=self.root.destroy)
         exit_button.pack()
 
+    # Retrieve patient information
     def retrieve_patient(self):
         patient_id = simpledialog.askstring("Retrieve Patient", "Enter Patient ID:")
 
@@ -99,6 +106,7 @@ class App:
             else:
                 messagebox.showerror("Error", "Patient ID not found")
 
+    # Format patient information
     def format_patient_info(self, patient_info):
         info_str = f"Patient ID: {patient_info['Patient_ID']}\n"
         info_str += f"Gender: {patient_info['Gender']}\n"
@@ -112,6 +120,7 @@ class App:
             info_str += f"  Visit ID: {visit['Visit_ID']}, Visit Time: {visit['Visit_time']}, Chief Complaint: {visit['Chief_complaint']}\n"
         return info_str
 
+    # Add New Patient
     def add_patient(self):
         patient_data = {}
         patient_data['Patient_ID'] = simpledialog.askstring("Add Patient", "Enter Patient ID:")
@@ -132,6 +141,7 @@ class App:
             messagebox.showinfo("Success", "Patient added successfully")
             self.log_usage(self.username_entry.get(), "", "Add Patient", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
+    # Remove Patient
     def remove_patient(self):
         patient_id = simpledialog.askstring("Remove Patient", "Enter Patient ID to remove:")
 
@@ -141,6 +151,7 @@ class App:
             messagebox.showinfo("Success", "Patient removed successfully")
             self.log_usage(self.username_entry.get(), "", "Remove Patient", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
+    # Count visits on a specific date
     def count_visits(self):
         date = simpledialog.askstring("Count Visits", "Enter date to count visits (yyyy-mm-dd):")
 
@@ -157,16 +168,19 @@ class App:
             messagebox.showinfo("Total Visits", f"Total visits on {date}: {total_visits}")
             self.log_usage(self.username_entry.get(), "", "Count Visits", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
+    # Generate statistics
     def generate_statistics(self):
         statistics = self.hospital.generate_statistics()
         messagebox.showinfo("Statistics", statistics)
         self.log_usage(self.username_entry.get(), "", "Generate Statistics", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
+    # Log user usage
     def log_usage(self, username, user_role, action, timestamp):
         with open("usage_statistics.csv", "a") as log_file:
             writer = csv.writer(log_file)
             writer.writerow([username, user_role, action, timestamp])
 
+    # Load patient information
     def load_patients(self, filename):
         hospital = HospitalRecord()
         with open(filename, 'r') as file:
@@ -188,6 +202,7 @@ class App:
                 hospital.add_patient_record(patient_data)
         return hospital
 
+    # Save patient information
     def save_patient_info(self, filename):
         with open(filename, 'w', newline='') as file:
             writer = csv.writer(file)
